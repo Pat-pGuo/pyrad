@@ -181,6 +181,12 @@ def EncodeFloat(num, format='!f'):
         raise TypeError('Can not encode non-float as float')
     return struct.pack(format, num)
 
+def EncodeIPv4Prefix(addr):
+    if not isinstance(addr, str):
+        raise TypeError('IPv4 Prefix has to be a string')
+    ip = IPv4Network(addr)
+    return struct.pack('!2B', *[0, ip.prefixlen]) + ip.network_address.packed
+
 
 def DecodeString(orig_str):
     return orig_str.decode('utf-8')
@@ -236,6 +242,11 @@ def DecodeEther(ether):
 def DecodeFloat(num, format='!f'):
     return (struct.unpack(format, num))[0]
 
+def DecodeIPv4Prefix(addr):
+    addr = addr + b'\x00' * (6-len(addr))
+    _, length, prefix = '.'.join(map('{}'.format, struct.unpack('!BBBBBB', addr))).split('.', 2)
+    return str(IPv4Network('%s/%s' % (prefix, length)))
+
 
 def EncodeAttr(datatype, value):
     if datatype == 'string':
@@ -282,6 +293,8 @@ def EncodeAttr(datatype, value):
         return EncodeInteger(value, '!q')
     elif datatype == 'float32':
         return EncodeFloat(value, '!f')
+    elif datatype == 'ipv4prefix':
+        return EncodeIPv4Prefix(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -331,5 +344,7 @@ def DecodeAttr(datatype, value):
         return DecodeInteger(value, '!q')
     elif datatype == 'float32':
         return DecodeFloat(value, '!f')
+    elif datatype == 'ipv4prefix':
+        return DecodeIPv4Prefix(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
