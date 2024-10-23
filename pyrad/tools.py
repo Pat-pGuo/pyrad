@@ -266,6 +266,8 @@ def EncodeAttr(datatype, value):
         return EncodeInteger(value, '!H')
     elif datatype == 'uint32':
         return EncodeInteger(value, '!I')
+    elif datatype == 'uint64':
+        return EncodeInteger(value, '!Q')
     elif datatype == 'int64':
         return EncodeInteger(value, '!q')
     else:
@@ -311,6 +313,8 @@ def DecodeAttr(datatype, value):
         return DecodeInteger(value, '!H')
     elif datatype == 'uint32':
         return DecodeInteger(value, '!I')
+    elif datatype == 'uint64':
+        return DecodeInteger(value, '!Q')
     elif datatype == 'int64':
         return DecodeInteger(value, '!q')
     else:
