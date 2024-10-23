@@ -91,6 +91,9 @@ These datatypes are parsed but not supported:
 | evs           | Attribute containing vendor-id, evs-type,    |
 |               | and evs-value                                |
 +---------------+----------------------------------------------+
+| extended      | Attribute containing extended-type           |
++---------------+----------------------------------------------+
+
 """
 from pyrad import bidict
 from pyrad import tools
@@ -105,7 +108,8 @@ DATATYPES = frozenset(['string', 'ipaddr', 'integer', 'date', 'octets',
                        'abinary', 'ipv6addr', 'ipv6prefix', 'short', 'byte',
                        'signed', 'ifid', 'ether', 'tlv', 'integer64',
                        'combo-ip', 'bool', 'uint8', 'uint16', 'uint32',
-                       'uint64', 'int64', 'float32', 'ipv4prefix', 'evs'])
+                       'uint64', 'int64', 'float32', 'ipv4prefix', 'evs',
+                       'extended'])
 
 
 class ParseError(Exception):
