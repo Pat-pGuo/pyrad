@@ -244,6 +244,9 @@ class Dictionary(object):
                     if vendor == "concat":
                         # ignore attributes with concat (freeradius compat.)
                         return None
+                    elif vendor == 'extended' or vendor == 'long-extended':
+                        tokens[3] = tokens[4]
+                        vendor = None
                     else:
                         raise ParseError('Unknown vendor ' + vendor,
                                          file=state['file'],
