@@ -193,6 +193,7 @@ class Dictionary(object):
         self.defer_parse = []
 
         self.prev_parent_code = None
+        self.implicit_parent_code = False
 
         if dict:
             self.ReadDictionary(dict)
@@ -256,6 +257,7 @@ class Dictionary(object):
 
         (attribute, code, datatype) = tokens[1:4]
 
+        self.implicit_parent_code = False
         codes = code.split('.')
 
         # Codes can be sent as hex, or octal or decimal string representations.
@@ -266,13 +268,29 @@ class Dictionary(object):
           elif c.startswith('0o'):
             tmp.append(int(c, 8))
           elif i == 0 and not c:
-              tmp.append(self.prev_parent_code)
+              self.implicit_parent_code = True
+              for pcode in self.prev_parent_code:
+                  tmp.append(pcode)
           else:
             tmp.append(int(c, 10))
         codes = tmp
 
+        if self.implicit_parent_code:
+            self.prev_parent_code = codes[:-1]
+        else:
+            self.prev_parent_code = codes
+
         is_sub_attribute = (len(codes) > 1)
-        if len(codes) == 2:
+        if len(codes) == 4:
+            parent_code= int(codes[0])
+            extended_code = int(codes[1])
+            vendor_code = int(codes[2])
+            code = int(codes[3])
+        elif len(codes) == 3:
+            parent_code= int(codes[0])
+            extended_code = int(codes[1])
+            code = int(codes[2])
+        elif len(codes) == 2:
             code = int(codes[1])
             parent_code = int(codes[0])
         elif len(codes) == 1:
@@ -303,7 +321,6 @@ class Dictionary(object):
         if datatype == 'tlv' or datatype == 'extended' or datatype == 'long-extended':
             # save attribute in tlvs
             state['tlvs'][code] = self.attributes[attribute]
-            self.prev_parent_code = code
         if is_sub_attribute:
             # save sub attribute in parent tlv and update their parent field
             state['tlvs'][parent_code].sub_attributes[code] = attribute
