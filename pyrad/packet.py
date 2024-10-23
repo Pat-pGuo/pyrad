@@ -100,6 +100,9 @@ class Packet(OrderedDict):
         self.message_authenticator = None
         self.raw_packet = None
 
+        self.long_sequence_buffer = None
+        self.prev_long_type = None
+
         if 'dict' in attributes:
             self.dict = attributes['dict']
 
@@ -540,6 +543,24 @@ class Packet(OrderedDict):
         if attribute:
             self.setdefault((code, extended_type), []).append(data[1:])
 
+    def _PktDecodeLongExtendedAttributes(self, code, data):
+        extended_type, flags = struct.unpack('!BB', data[0:2])[0:2]
+        attribute = self.dict.attributes.get(self._DecodeKey((code, extended_type)))
+
+        # Check if entering new long sequence
+        if self.prev_long_type is None:
+            self.long_sequence_buffer = b''
+            self.prev_long_type = (code, extended_type)
+
+        if self.prev_long_type != (code, extended_type):
+            raise TypeError('Inconsistent typing in long sequence!')
+
+        # Check if long sequence has ended
+        if flags < 128:
+            self.setdefault((code, extended_type), []).append(self.long_sequence_buffer)
+            self.long_sequence_buffer = None
+            self.prev_long_type = None
+
     def DecodePacket(self, packet):
         """Initialize the object from raw packet data.  Decode a packet as
         received from the network and decode it.
@@ -586,6 +607,8 @@ class Packet(OrderedDict):
                 self._PktDecodeEvsAttributes(key, value)
             elif attribute and attribute.type == 'extended':
                 self._PktDecodeExtendedAttributes(key, value)
+            elif attribute and attribute.type == 'long-extended':
+                self._PktDecodeLongExtendedAttributes(key, value)
             else:
                 self.setdefault(key, []).append(value)
 

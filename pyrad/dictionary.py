@@ -93,6 +93,9 @@ These datatypes are parsed but not supported:
 +---------------+----------------------------------------------+
 | extended      | Attribute containing extended-type           |
 +---------------+----------------------------------------------+
+| long-extended | Attribute containing extended-type and More  |
+|               | flag                                         |
++---------------+----------------------------------------------+
 
 """
 from pyrad import bidict
@@ -109,7 +112,7 @@ DATATYPES = frozenset(['string', 'ipaddr', 'integer', 'date', 'octets',
                        'signed', 'ifid', 'ether', 'tlv', 'integer64',
                        'combo-ip', 'bool', 'uint8', 'uint16', 'uint32',
                        'uint64', 'int64', 'float32', 'ipv4prefix', 'evs',
-                       'extended'])
+                       'extended', 'long-extended'])
 
 
 class ParseError(Exception):
