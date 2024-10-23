@@ -528,6 +528,12 @@ class Packet(OrderedDict):
             sub_attributes.setdefault(atype, []).append(data[loc+2:loc+length])
             loc += length
 
+    def _PktDecodeEvsAttributes(self, code, data):
+        vendor_id, evs_type = struct.unpack('!IB', data[0:5])
+        attribute = self.dict.attributes.get(self._DecodeKey((code, vendor_id, evs_type)))
+        if attribute:
+            self.setdefault((code, vendor_id, evs_type), []).append(data[5:])
+
     def DecodePacket(self, packet):
         """Initialize the object from raw packet data.  Decode a packet as
         received from the network and decode it.
@@ -570,6 +576,8 @@ class Packet(OrderedDict):
                 self.setdefault(key, []).append(value)
             elif attribute and attribute.type == 'tlv':
                 self._PktDecodeTlvAttribute(key,value)
+            elif attribute and attribute.type == 'evs':
+                self._PktDecodeEvsAttributes(key, value)
             else:
                 self.setdefault(key, []).append(value)
 
