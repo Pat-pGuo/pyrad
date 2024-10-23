@@ -158,6 +158,13 @@ def EncodeDate(num):
         raise TypeError('Can not encode non-integer as date')
     return struct.pack('!I', num)
 
+def EncodeComboIp(addr):
+    if not isinstance(addr, str):
+        raise TypeError('Combo IP Address has to be a string')
+    if len(addr.split('.')) == 4:
+        return EncodeAddress(addr)
+    return EncodeIPv6Address(addr)
+
 
 def DecodeString(orig_str):
     return orig_str.decode('utf-8')
@@ -196,6 +203,11 @@ def DecodeInteger64(num, format='!Q'):
 def DecodeDate(num):
     return (struct.unpack('!I', num))[0]
 
+def DecodeComboIp(addr):
+    if len(addr) == 4:
+        return DecodeAddress(addr)
+    return DecodeIPv6Address(addr)
+
 
 def EncodeAttr(datatype, value):
     if datatype == 'string':
@@ -222,6 +234,8 @@ def EncodeAttr(datatype, value):
         return EncodeDate(value)
     elif datatype == 'integer64':
         return EncodeInteger64(value)
+    elif datatype == 'combo-ip':
+        return EncodeComboIp(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -251,5 +265,7 @@ def DecodeAttr(datatype, value):
         return DecodeDate(value)
     elif datatype == 'integer64':
         return DecodeInteger64(value)
+    elif datatype == 'combo-ip':
+        return DecodeComboIp(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
