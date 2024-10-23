@@ -165,6 +165,9 @@ def EncodeComboIp(addr):
         return EncodeAddress(addr)
     return EncodeIPv6Address(addr)
 
+def EncodeBool(bool):
+    return struct.pack('!B', int(bool))
+
 
 def DecodeString(orig_str):
     return orig_str.decode('utf-8')
@@ -208,6 +211,9 @@ def DecodeComboIp(addr):
         return DecodeAddress(addr)
     return DecodeIPv6Address(addr)
 
+def DecodeBool(bool):
+    return int(struct.unpack('!B', bool)[0])
+
 
 def EncodeAttr(datatype, value):
     if datatype == 'string':
@@ -236,6 +242,8 @@ def EncodeAttr(datatype, value):
         return EncodeInteger64(value)
     elif datatype == 'combo-ip':
         return EncodeComboIp(value)
+    elif datatype == 'bool':
+        return EncodeBool(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -267,5 +275,7 @@ def DecodeAttr(datatype, value):
         return DecodeInteger64(value)
     elif datatype == 'combo-ip':
         return DecodeComboIp(value)
+    elif datatype == 'bool':
+        return DecodeBool(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)

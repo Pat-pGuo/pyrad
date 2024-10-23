@@ -61,6 +61,8 @@ The datatypes currently supported are:
 +---------------+----------------------------------------------+
 | combo-ip      | IPv4 or IPv6 address in network byte order   |
 +---------------+----------------------------------------------+
+| bool          | 1 octet with right-most bit as flag          |
++---------------+----------------------------------------------+
 
 These datatypes are parsed but not supported:
 
@@ -85,7 +87,7 @@ __docformat__ = 'epytext en'
 DATATYPES = frozenset(['string', 'ipaddr', 'integer', 'date', 'octets',
                        'abinary', 'ipv6addr', 'ipv6prefix', 'short', 'byte',
                        'signed', 'ifid', 'ether', 'tlv', 'integer64',
-                       'combo-ip'])
+                       'combo-ip', 'bool'])
 
 
 class ParseError(Exception):
