@@ -296,7 +296,7 @@ class Dictionary(object):
 
         self.attrindex.Add(attribute, key)
         self.attributes[attribute] = Attribute(attribute, code, datatype, is_sub_attribute, vendor, encrypt=encrypt, has_tag=has_tag)
-        if datatype == 'tlv':
+        if datatype == 'tlv' or datatype == 'extended' or datatype == 'long-extended':
             # save attribute in tlvs
             state['tlvs'][code] = self.attributes[attribute]
         if is_sub_attribute:
