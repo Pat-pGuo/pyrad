@@ -192,6 +192,8 @@ class Dictionary(object):
         self.attributes = {}
         self.defer_parse = []
 
+        self.prev_parent_code = None
+
         if dict:
             self.ReadDictionary(dict)
 
@@ -258,11 +260,13 @@ class Dictionary(object):
 
         # Codes can be sent as hex, or octal or decimal string representations.
         tmp = []
-        for c in codes:
+        for i, c in enumerate(codes):
           if c.startswith('0x'):
             tmp.append(int(c, 16))
           elif c.startswith('0o'):
             tmp.append(int(c, 8))
+          elif i == 0 and not c:
+              tmp.append(self.prev_parent_code)
           else:
             tmp.append(int(c, 10))
         codes = tmp
@@ -299,6 +303,7 @@ class Dictionary(object):
         if datatype == 'tlv' or datatype == 'extended' or datatype == 'long-extended':
             # save attribute in tlvs
             state['tlvs'][code] = self.attributes[attribute]
+            self.prev_parent_code = code
         if is_sub_attribute:
             # save sub attribute in parent tlv and update their parent field
             state['tlvs'][parent_code].sub_attributes[code] = attribute
