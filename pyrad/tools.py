@@ -260,6 +260,12 @@ def EncodeAttr(datatype, value):
         return EncodeIfid(value)
     elif datatype == 'ether':
         return EncodeEther(value)
+    elif datatype == 'uint8':
+        return EncodeInteger(value, '!B')
+    elif datatype == 'uint16':
+        return EncodeInteger(value, '!H')
+    elif datatype == 'uint32':
+        return EncodeInteger(value, '!I')
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -297,5 +303,11 @@ def DecodeAttr(datatype, value):
         return DecodeIfid(value)
     elif datatype == 'ether':
         return DecodeEther(value)
+    elif datatype == 'uint8':
+        return DecodeInteger(value, '!B')
+    elif datatype == 'uint16':
+        return DecodeInteger(value, '!H')
+    elif datatype == 'uint32':
+        return DecodeInteger(value, '!I')
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
