@@ -266,6 +266,8 @@ def EncodeAttr(datatype, value):
         return EncodeInteger(value, '!H')
     elif datatype == 'uint32':
         return EncodeInteger(value, '!I')
+    elif datatype == 'int64':
+        return EncodeInteger(value, '!q')
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -309,5 +311,7 @@ def DecodeAttr(datatype, value):
         return DecodeInteger(value, '!H')
     elif datatype == 'uint32':
         return DecodeInteger(value, '!I')
+    elif datatype == 'int64':
+        return DecodeInteger(value, '!q')
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
