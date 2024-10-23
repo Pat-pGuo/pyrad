@@ -174,6 +174,13 @@ def EncodeIfid(ifid):
 def EncodeEther(ether):
     return struct.pack('!HHHHHH', *map(lambda x: int(x, 16), ether.split(':')))
 
+def EncodeFloat(num, format='!f'):
+    try:
+        num = float(num)
+    except:
+        raise TypeError('Can not encode non-float as float')
+    return struct.pack(format, num)
+
 
 def DecodeString(orig_str):
     return orig_str.decode('utf-8')
@@ -226,6 +233,9 @@ def DecodeIfid(ifid):
 def DecodeEther(ether):
     return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHHHH', ether)))
 
+def DecodeFloat(num, format='!f'):
+    return (struct.unpack(format, num))[0]
+
 
 def EncodeAttr(datatype, value):
     if datatype == 'string':
@@ -270,6 +280,8 @@ def EncodeAttr(datatype, value):
         return EncodeInteger(value, '!Q')
     elif datatype == 'int64':
         return EncodeInteger(value, '!q')
+    elif datatype == 'float32':
+        return EncodeFloat(value, '!f')
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -317,5 +329,7 @@ def DecodeAttr(datatype, value):
         return DecodeInteger(value, '!Q')
     elif datatype == 'int64':
         return DecodeInteger(value, '!q')
+    elif datatype == 'float32':
+        return DecodeFloat(value, '!f')
     else:
         raise ValueError('Unknown attribute type %s' % datatype)

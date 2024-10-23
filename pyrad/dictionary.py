@@ -78,6 +78,8 @@ The datatypes currently supported are:
 +---------------+----------------------------------------------+
 | int64         | Signed 8 octet long integer                  |
 +---------------+----------------------------------------------+
+| float32       | Signed 4 octet long float.                   |
++---------------+----------------------------------------------+
 
 These datatypes are parsed but not supported:
 
@@ -99,7 +101,7 @@ DATATYPES = frozenset(['string', 'ipaddr', 'integer', 'date', 'octets',
                        'abinary', 'ipv6addr', 'ipv6prefix', 'short', 'byte',
                        'signed', 'ifid', 'ether', 'tlv', 'integer64',
                        'combo-ip', 'bool', 'uint8', 'uint16', 'uint32',
-                       'uint64', 'int64'])
+                       'uint64', 'int64', 'float32'])
 
 
 class ParseError(Exception):
