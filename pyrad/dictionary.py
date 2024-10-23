@@ -63,14 +63,14 @@ The datatypes currently supported are:
 +---------------+----------------------------------------------+
 | bool          | 1 octet with right-most bit as flag          |
 +---------------+----------------------------------------------+
+| ifid          | 8 octets in network byte order               |
++---------------+----------------------------------------------+
 
 These datatypes are parsed but not supported:
 
 +---------------+----------------------------------------------+
 | type          | description                                  |
 +===============+==============================================+
-| ifid          | 8 octets in network byte order               |
-+---------------+----------------------------------------------+
 | ether         | 6 octets of hh:hh:hh:hh:hh:hh                |
 |               | where 'h' is hex digits, upper or lowercase. |
 +---------------+----------------------------------------------+

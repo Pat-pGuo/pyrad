@@ -168,6 +168,9 @@ def EncodeComboIp(addr):
 def EncodeBool(bool):
     return struct.pack('!B', int(bool))
 
+def EncodeIfid(ifid):
+    return struct.pack('!HHHH', *map(lambda x: int(x, 16), ifid.split(':')))
+
 
 def DecodeString(orig_str):
     return orig_str.decode('utf-8')
@@ -214,6 +217,9 @@ def DecodeComboIp(addr):
 def DecodeBool(bool):
     return int(struct.unpack('!B', bool)[0])
 
+def DecodeIfid(ifid):
+    return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHH', ifid)))
+
 
 def EncodeAttr(datatype, value):
     if datatype == 'string':
@@ -244,6 +250,8 @@ def EncodeAttr(datatype, value):
         return EncodeComboIp(value)
     elif datatype == 'bool':
         return EncodeBool(value)
+    elif datatype == 'ifid':
+        return EncodeIfid(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -277,5 +285,7 @@ def DecodeAttr(datatype, value):
         return DecodeComboIp(value)
     elif datatype == 'bool':
         return DecodeBool(value)
+    elif datatype == 'ifid':
+        return DecodeIfid(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
