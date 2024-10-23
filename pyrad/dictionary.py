@@ -65,15 +65,16 @@ The datatypes currently supported are:
 +---------------+----------------------------------------------+
 | ifid          | 8 octets in network byte order               |
 +---------------+----------------------------------------------+
+| ether         | 6 octets of hh:hh:hh:hh:hh:hh                |
+|               | where 'h' is hex digits, upper or lowercase. |
++---------------+----------------------------------------------+
 
 These datatypes are parsed but not supported:
 
 +---------------+----------------------------------------------+
 | type          | description                                  |
 +===============+==============================================+
-| ether         | 6 octets of hh:hh:hh:hh:hh:hh                |
-|               | where 'h' is hex digits, upper or lowercase. |
-+---------------+----------------------------------------------+
+
 """
 from pyrad import bidict
 from pyrad import tools

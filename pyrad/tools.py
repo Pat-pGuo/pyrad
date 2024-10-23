@@ -171,6 +171,9 @@ def EncodeBool(bool):
 def EncodeIfid(ifid):
     return struct.pack('!HHHH', *map(lambda x: int(x, 16), ifid.split(':')))
 
+def EncodeEther(ether):
+    return struct.pack('!HHHHHH', *map(lambda x: int(x, 16), ether.split(':')))
+
 
 def DecodeString(orig_str):
     return orig_str.decode('utf-8')
@@ -220,6 +223,9 @@ def DecodeBool(bool):
 def DecodeIfid(ifid):
     return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHH', ifid)))
 
+def DecodeEther(ether):
+    return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHHHH', ether)))
+
 
 def EncodeAttr(datatype, value):
     if datatype == 'string':
@@ -252,6 +258,8 @@ def EncodeAttr(datatype, value):
         return EncodeBool(value)
     elif datatype == 'ifid':
         return EncodeIfid(value)
+    elif datatype == 'ether':
+        return EncodeEther(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
 
@@ -287,5 +295,7 @@ def DecodeAttr(datatype, value):
         return DecodeBool(value)
     elif datatype == 'ifid':
         return DecodeIfid(value)
+    elif datatype == 'ether':
+        return DecodeEther(value)
     else:
         raise ValueError('Unknown attribute type %s' % datatype)
