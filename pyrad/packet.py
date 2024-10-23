@@ -529,7 +529,7 @@ class Packet(OrderedDict):
             loc += length
 
     def _PktDecodeEvsAttributes(self, code, data):
-        vendor_id, evs_type = struct.unpack('!IB', data[0:5])
+        vendor_id, evs_type = struct.unpack('!IB', data[0:5])[0:2]
         attribute = self.dict.attributes.get(self._DecodeKey((code, vendor_id, evs_type)))
         if attribute:
             self.setdefault((code, vendor_id, evs_type), []).append(data[5:])
