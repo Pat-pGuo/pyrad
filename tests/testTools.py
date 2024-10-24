@@ -129,6 +129,18 @@ class EncodingTests(unittest.TestCase):
         self.assertRaises(struct.error, tools.DecodeIfid, b'')
         self.assertRaises(struct.error, tools.DecodeIfid, b'\x10\x11\x12\x13\x14\x15\x16\x17\x18')
 
+    def testEtherEncoding(self):
+        self.assertEqual(tools.EncodeEther('11:12:13:14:15:16'), b'\x11\x12\x13\x14\x15\x16')
+
+        self.assertRaises(struct.error, tools.EncodeEther, '11:12:13:14:15')
+        self.assertRaises(struct.error, tools.EncodeEther, '11:12:13:14:15:16:17')
+
+    def testEtherDecoding(self):
+        self.assertEqual(tools.DecodeEther(b'\x11\x12\x13\x14\x15\x16'), '11:12:13:14:15:16')
+
+        self.assertRaises(struct.error, tools.DecodeEther, b'\x11\x12\x13\x14\x15\x16\17')
+        self.assertRaises(struct.error, tools.DecodeEther, b'\x11\x12\x13\x14\x15')
+
     def testEncodeFunction(self):
         self.assertEqual(
                 tools.EncodeAttr('string', 'string'),
