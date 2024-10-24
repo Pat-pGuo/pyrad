@@ -192,6 +192,30 @@ class EncodingTests(unittest.TestCase):
         self.assertEqual(
                 tools.EncodeAttr('integer64', 0xFFFFFFFFFFFFFFFF),
                 b'\xff'*8)
+        self.assertEqual(
+                tools.EncodeAttr('uint8', 0xff),
+                b'\xff'
+        )
+        self.assertEqual(
+                tools.EncodeAttr('uint16', 0xffff),
+                b'\xff\xff'
+        )
+        self.assertEqual(
+                tools.EncodeAttr('uint32', 0xffffffff),
+                b'\xff\xff\xff\xff'
+        )
+        self.assertEqual(
+                tools.EncodeAttr('uint64', 0xffffffffffffffff),
+            b'\xff\xff\xff\xff\xff\xff\xff\xff'
+        )
+        self.assertEqual(
+                tools.EncodeAttr('int64', 0xfffffffffffffff),
+                b'\x0f\xff\xff\xff\xff\xff\xff\xff'
+        )
+        self.assertEqual(
+                tools.EncodeAttr('int64', -0xfffffffffffffff),
+                b'\xf0\x00\x00\x00\x00\x00\x00\x01'
+        )
 
     def testDecodeFunction(self):
         self.assertEqual(
@@ -212,3 +236,27 @@ class EncodingTests(unittest.TestCase):
         self.assertEqual(
                 tools.DecodeAttr('date', b'\x01\x02\x03\x04'),
                 0x01020304)
+        self.assertEqual(
+                tools.DecodeAttr('uint8', b'\xff'),
+                0xff
+        )
+        self.assertEqual(
+                tools.DecodeAttr('uint16', b'\xff\xff'),
+                0xffff
+        )
+        self.assertEqual(
+                tools.DecodeAttr('uint32', b'\xff\xff\xff\xff'),
+                0xffffffff
+        )
+        self.assertEqual(
+                tools.DecodeAttr('uint64', b'\xff\xff\xff\xff\xff\xff\xff\xff'),
+                0xffffffffffffffff
+        )
+        self.assertEqual(
+                tools.DecodeAttr('int64', b'\x0f\xff\xff\xff\xff\xff\xff\xff'),
+                0xfffffffffffffff
+        )
+        self.assertEqual(
+                tools.DecodeAttr('int64', b'\xf0\x00\x00\x00\x00\x00\x00\x01'),
+            -0xfffffffffffffff
+        )
