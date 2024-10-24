@@ -102,6 +102,22 @@ class EncodingTests(unittest.TestCase):
 
         self.assertRaises(struct.error, tools.DecodeComboIp, b'\x01\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x04\00')
 
+    def testBoolEncoding(self):
+        self.assertEqual(tools.EncodeBool(1), b'\x01')
+        self.assertEqual(tools.EncodeBool(True), b'\x01')
+        self.assertEqual(tools.EncodeBool(0), b'\x00')
+        self.assertEqual(tools.EncodeBool(False), b'\x00')
+
+        self.assertRaises(TypeError, tools.EncodeBool, None)
+
+    def testBoolDecoding(self):
+        self.assertEqual(tools.DecodeBool(b'\x01'), True)
+        self.assertEqual(tools.DecodeBool(b'\x02'), True)
+        self.assertEqual(tools.DecodeBool(b'\x00'), False)
+
+        self.assertRaises(TypeError, tools.DecodeBool, None)
+        self.assertRaises(struct.error, tools.DecodeBool, b'\x00\x01')
+
     def testEncodeFunction(self):
         self.assertEqual(
                 tools.EncodeAttr('string', 'string'),
