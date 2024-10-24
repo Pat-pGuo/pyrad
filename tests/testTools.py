@@ -141,6 +141,20 @@ class EncodingTests(unittest.TestCase):
         self.assertRaises(struct.error, tools.DecodeEther, b'\x11\x12\x13\x14\x15\x16\17')
         self.assertRaises(struct.error, tools.DecodeEther, b'\x11\x12\x13\x14\x15')
 
+    def testFloatEncoding(self):
+        self.assertEqual(tools.EncodeFloat(1), b'?\x80\x00\x00')
+        self.assertEqual(tools.EncodeFloat(1.0), b'?\x80\x00\x00')
+        self.assertEqual(tools.EncodeFloat(1.1), b'?\x8c\xcc\xcd')
+        self.assertEqual(tools.EncodeFloat(-1.1), b'\xbf\x8c\xcc\xcd')
+
+    def testFloatDecoding(self):
+        self.assertEqual(tools.DecodeFloat(b'?\x80\x00\x00'), 1)
+        self.assertEqual(tools.DecodeFloat(b'?\x80\x00\x00'), 1.0)
+
+        # Need to use assertLess due to float inaccuracy
+        self.assertLess(tools.DecodeFloat(b'?\x8c\xcc\xcd') - 1.1, 0.001)
+        self.assertLess(tools.DecodeFloat(b'\xbf\x8c\xcc\xcd') - (-1.1), 0.001)
+
     def testEncodeFunction(self):
         self.assertEqual(
                 tools.EncodeAttr('string', 'string'),
