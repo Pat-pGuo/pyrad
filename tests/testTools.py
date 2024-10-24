@@ -118,6 +118,17 @@ class EncodingTests(unittest.TestCase):
         self.assertRaises(TypeError, tools.DecodeBool, None)
         self.assertRaises(struct.error, tools.DecodeBool, b'\x00\x01')
 
+    def testIfidEncoding(self):
+        self.assertEqual(tools.EncodeIfid('1011:1213:1415:1617'), b'\x10\x11\x12\x13\x14\x15\x16\x17')
+
+        self.assertRaises(struct.error, tools.EncodeIfid, '1011')
+
+    def testIfidDecoding(self):
+        self.assertEqual(tools.DecodeIfid(b'\x10\x11\x12\x13\x14\x15\x16\x17'), '1011:1213:1415:1617')
+
+        self.assertRaises(struct.error, tools.DecodeIfid, b'')
+        self.assertRaises(struct.error, tools.DecodeIfid, b'\x10\x11\x12\x13\x14\x15\x16\x17\x18')
+
     def testEncodeFunction(self):
         self.assertEqual(
                 tools.EncodeAttr('string', 'string'),
