@@ -172,7 +172,7 @@ def EncodeIfid(ifid):
     return struct.pack('!HHHH', *map(lambda x: int(x, 16), ifid.split(':')))
 
 def EncodeEther(ether):
-    return struct.pack('!HHHHHH', *map(lambda x: int(x, 16), ether.split(':')))
+    return struct.pack('!BBBBBB', *map(lambda x: int(x, 16), ether.split(':')))
 
 def EncodeFloat(num, format='!f'):
     try:
@@ -237,7 +237,7 @@ def DecodeIfid(ifid):
     return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHH', ifid)))
 
 def DecodeEther(ether):
-    return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHHHH', ether)))
+    return ':'.join(map('{0:02x}'.format, struct.unpack('!BBBBBB', ether)))
 
 def DecodeFloat(num, format='!f'):
     return (struct.unpack(format, num))[0]
