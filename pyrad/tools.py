@@ -165,8 +165,8 @@ def EncodeComboIp(addr):
         return EncodeAddress(addr)
     return EncodeIPv6Address(addr)
 
-def EncodeBool(bool):
-    return struct.pack('!B', int(bool))
+def EncodeBool(boolean):
+    return struct.pack('!B', int(boolean))
 
 def EncodeIfid(ifid):
     return struct.pack('!HHHH', *map(lambda x: int(x, 16), ifid.split(':')))
@@ -230,8 +230,8 @@ def DecodeComboIp(addr):
         return DecodeAddress(addr)
     return DecodeIPv6Address(addr)
 
-def DecodeBool(bool):
-    return int(struct.unpack('!B', bool)[0])
+def DecodeBool(boolean):
+    return bool(struct.unpack('!B', boolean)[0])
 
 def DecodeIfid(ifid):
     return ':'.join(map('{0:02x}'.format, struct.unpack('!HHHH', ifid)))
