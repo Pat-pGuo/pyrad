@@ -1,3 +1,4 @@
+import struct
 from ipaddress import AddressValueError
 from pyrad import tools
 import unittest
@@ -85,6 +86,21 @@ class EncodingTests(unittest.TestCase):
 
     def testUnknownTypeDecoding(self):
         self.assertRaises(ValueError, tools.DecodeAttr, 'unknown', None)
+
+    def testComboIpEncoding(self):
+        self.assertEqual(tools.EncodeComboIp('1.2.3.4'), b'\x01\x02\x03\x04')
+        self.assertEqual(tools.EncodeComboIp('0102:0304:0506:0708:090A:0B0C:0D0E:0F10'), b'\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10')
+        self.assertEqual(tools.EncodeComboIp('0102::0304'), b'\x01\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x04')
+
+        self.assertRaises(ValueError, tools.EncodeComboIp, '1.2.3')
+        self.assertRaises(ValueError, tools.EncodeComboIp, '0102:0304:0506:0708:090A:0B0C:0D0E')
+
+    def testComboIpDecoding(self):
+        self.assertEqual(tools.DecodeComboIp(b'\x01\x02\x03\x04'), '1.2.3.4')
+        self.assertEqual(tools.DecodeComboIp(b'\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10'), '102:304:506:708:90a:b0c:d0e:f10')
+        self.assertEqual(tools.DecodeComboIp(b'\x01\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x04'), '102::304')
+
+        self.assertRaises(struct.error, tools.DecodeComboIp, b'\x01\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x04\00')
 
     def testEncodeFunction(self):
         self.assertEqual(
