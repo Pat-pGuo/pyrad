@@ -1,5 +1,5 @@
 import struct
-from ipaddress import AddressValueError
+from ipaddress import AddressValueError, NetmaskValueError
 from pyrad import tools
 import unittest
 
@@ -154,6 +154,24 @@ class EncodingTests(unittest.TestCase):
         # Need to use assertLess due to float inaccuracy
         self.assertLess(tools.DecodeFloat(b'?\x8c\xcc\xcd') - 1.1, 0.001)
         self.assertLess(tools.DecodeFloat(b'\xbf\x8c\xcc\xcd') - (-1.1), 0.001)
+
+    def testIPv4prefixEncoding(self):
+        self.assertEqual(tools.EncodeIPv4Prefix('1.2.3.0/24'), b'\x00\x18\x01\x02\x03\x00')
+        self.assertEqual(tools.EncodeIPv4Prefix('1.2.3.0/32'), b'\x00\x20\x01\x02\x03\x00')
+        self.assertEqual(tools.EncodeIPv4Prefix('1.2.3.4'), b'\x00\x20\x01\x02\x03\x04')
+
+        self.assertRaises(ValueError, tools.EncodeIPv4Prefix, '1.2.3.4/24')
+        self.assertRaises(ValueError, tools.EncodeIPv4Prefix, '1.2.3.128/24')
+        self.assertRaises(ValueError, tools.EncodeIPv4Prefix, '1.2.3.4/33')
+        self.assertRaises(ValueError, tools.EncodeIPv4Prefix, '256.0.0.0/32')
+
+    def testIPv4prefixDecoding(self):
+        self.assertEqual(tools.DecodeIPv4Prefix(b'\x00\x18\x01\x02\x03\x00'), '1.2.3.0/24')
+        self.assertEqual(tools.DecodeIPv4Prefix(b'\x00\x20\x01\x02\x03\x04'), '1.2.3.4/32')
+        self.assertEqual(tools.DecodeIPv4Prefix(b'\x00\x20\x01\x02\x03'), '1.2.3.0/32')
+
+        self.assertRaises(NetmaskValueError, tools.DecodeIPv4Prefix, b'\x00\x21\x01\x02\x03\x04')
+        self.assertRaises(ValueError, tools.DecodeIPv4Prefix, b'\x00\x10\x01\x02\x03')
 
     def testEncodeFunction(self):
         self.assertEqual(
