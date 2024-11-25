@@ -4,8 +4,13 @@
 #
 # A RADIUS packet as defined in RFC 2138
 
-from collections import OrderedDict
 import struct
+from collections import OrderedDict
+
+from pyrad.datatypes.leaf import Octets, Integer
+from pyrad.datatypes.structural import Tlv, Vsa
+from pyrad.dictionary import Dictionary, Attribute
+
 try:
     import secrets
     random_generator = secrets.SystemRandom()
@@ -27,7 +32,6 @@ except ImportError:
     # BBB for python 2.4
     import md5
     md5_constructor = md5.new
-from pyrad import tools
 
 # Packet codes
 AccessRequest = 1
@@ -101,7 +105,7 @@ class Packet(OrderedDict):
         self.raw_packet = None
 
         if 'dict' in attributes:
-            self.dict = attributes['dict']
+            self.dict: Dictionary = attributes['dict']
 
         if 'packet' in attributes:
             self.raw_packet = attributes['packet']
@@ -248,14 +252,14 @@ class Packet(OrderedDict):
         if attr.values.HasBackward(value):
             return attr.values.GetBackward(value)
         else:
-            return tools.DecodeAttr(attr.type, value)
+            return attr.decode(value)
 
     def _EncodeValue(self, attr, value):
         result = ''
         if attr.values.HasForward(value):
             result = attr.values.GetForward(value)
         else:
-            result = tools.EncodeAttr(attr.type, value)
+            result = attr.encode(value)
 
         if attr.encrypt == 2:
             # salt encrypt attribute
@@ -275,7 +279,7 @@ class Packet(OrderedDict):
         key = self._EncodeKey(key)
         if tag:
             tag = struct.pack('B', int(tag))
-            if attr.type == "integer":
+            if isinstance(attr.type, Integer):
                 return (key, [tag + self._EncodeValue(attr, v)[1:] for v in values])
             else:
                 return (key, [tag + self._EncodeValue(attr, v) for v in values])
@@ -333,10 +337,10 @@ class Packet(OrderedDict):
 
         values = OrderedDict.__getitem__(self, self._EncodeKey(key))
         attr = self.dict.attributes[key]
-        if attr.type == 'tlv':  # return map from sub attribute code to its values
+        if isinstance(attr.type, Tlv):  # return map from sub attribute code to its values
             res = {}
             for (sub_attr_key, sub_attr_val) in values.items():
-                sub_attr_name = attr.sub_attributes[sub_attr_key]
+                sub_attr_name = attr.sub_attributes[sub_attr_key].name
                 sub_attr = self.dict.attributes[sub_attr_name]
                 for v in sub_attr_val:
                     res.setdefault(sub_attr_name, []).append(self._DecodeValue(sub_attr, v))
@@ -485,7 +489,7 @@ class Packet(OrderedDict):
         result = b''
         for (code, datalst) in self.items():
             attribute = self.dict.attributes.get(self._DecodeKey(code))
-            if attribute and attribute.type == 'tlv':
+            if isinstance(attribute.type, Tlv):
                 result += self._PktEncodeTlv(code, datalst)
             else:
                 for data in datalst:
@@ -501,7 +505,7 @@ class Packet(OrderedDict):
         (vendor, atype, length) = struct.unpack('!LBB', data[:6])[0:3]
         attribute = self.dict.attributes.get(self._DecodeKey((vendor, atype)))
         try:
-            if attribute and attribute.type == 'tlv':
+            if isinstance(attribute.type, Tlv):
                 self._PktDecodeTlvAttribute((vendor, atype), data[6:length + 4])
                 tlvs = []  # tlv is added to the packet inside _PktDecodeTlvAttribute
             else:
@@ -533,7 +537,15 @@ class Packet(OrderedDict):
         received from the network and decode it.
 
         :param packet: raw packet
-        :type packet:  string"""
+        :type packet:  bytestring"""
+
+        #  the presence of some attributes require us to perform certain
+        #  actions. this dict maps the attribute names to the functions to
+        #  perform those actions
+        attr_actions = {
+            'Message-Authenticator': self.__attr_action_message_authenticator
+        }
+
 
         try:
             (self.code, self.id, length, self.authenticator) = \
@@ -548,33 +560,62 @@ class Packet(OrderedDict):
 
         self.clear()
 
-        packet = packet[20:]
-        while packet:
+        cursor = 20
+        while cursor < len(packet):
             try:
-                (key, attrlen) = struct.unpack('!BB', packet[0:2])
+                (key, length) = struct.unpack('!BB', packet[cursor:cursor + 2])
             except struct.error:
                 raise PacketError('Attribute header is corrupt')
 
-            if attrlen < 2:
-                raise PacketError(
-                        'Attribute length is too small (%d)' % attrlen)
+            if length < 2:
+                raise PacketError(f'Attribute length is too small {length}')
 
-            value = packet[2:attrlen]
-            attribute = self.dict.attributes.get(self._DecodeKey(key))
-            if key == 26:
-                for (key, value) in self._PktDecodeVendorAttribute(value):
-                    self.setdefault(key, []).append(value)
-            elif key == 80:
-                # POST: Message Authenticator AVP is present.
-                self.message_authenticator = True
-                self.setdefault(key, []).append(value)
-            elif attribute and attribute.type == 'tlv':
-                self._PktDecodeTlvAttribute(key,value)
+            attribute: Attribute = self.dict.attributes.get(self._DecodeKey(key))
+
+            # perform attribute actions as needed
+            if attribute.name in attr_actions:
+                attr_actions[attribute.name](attribute, packet, cursor)
+
+            if attribute is None:
+                raise PacketError(f'Unknown attribute key {key}')
+
+            raw, offset = attribute.get_value(packet, cursor)
+
+            #  TODO :: move this VSA specific logic away from here
+            if isinstance(attribute.type, Vsa):
+                vsa = self.setdefault(attribute.code, {})
+                vendor_id = list(raw.keys())[0]
+                attrs = vsa.setdefault(vendor_id, {})
+                self[26] = self.__vendor_merge(attrs, raw)
             else:
-                self.setdefault(key, []).append(value)
+                self.setdefault(attribute.code, []).append(raw)
 
-            packet = packet[attrlen:]
+            cursor += offset
 
+    def __attr_action_message_authenticator(self, attribute, packet, offset):
+        #  if the Message-Authenticator attribute is present, set the
+        #  class attribute to True
+        self.message_authenticator = True
+
+    def __vendor_merge(self, vendor, raw):
+        results = {}
+
+        all_keys = set(vendor.keys()).union(raw.keys())
+
+        for key in all_keys:
+            vendor_val = vendor.get(key)
+            raw_val = raw.get(key)
+
+            if isinstance(vendor_val, dict) and isinstance(raw_val, dict):
+                results[key] = self.__vendor_merge(vendor_val, raw_val)
+            elif isinstance(vendor_val, list):
+                results[key] = vendor_val + [raw_val]
+            elif vendor_val is not None:
+                results[key] = [vendor_val, raw_val]
+            else:
+                results[key] = raw_val
+
+        return results
 
     def _salt_en_decrypt(self, data, salt):
         result = b''
@@ -796,7 +837,7 @@ class AuthPacket(Packet):
         if isinstance(userpwd, str):
             userpwd = userpwd.strip().encode('utf-8')
 
-        chap_password = tools.DecodeOctets(self.get(3)[0])
+        chap_password = Octets().decode(self.get(3)[0])
         if len(chap_password) != 17:
             return False
 

@@ -71,19 +71,36 @@ These datatypes are parsed but not supported:
 |               | where 'h' is hex digits, upper or lowercase. |
 +---------------+----------------------------------------------+
 """
-from pyrad import bidict
-from pyrad import tools
-from pyrad import dictfile
+
 from copy import copy
-import logging
+
+from pyrad import bidict
+from pyrad import dictfile
+from pyrad.datatypes import  structural
+from pyrad.datatypes import leaf
 
 __docformat__ = 'epytext en'
 
+from pyrad.datatypes.structural import AbstractStructural
 
-DATATYPES = frozenset(['string', 'ipaddr', 'integer', 'date', 'octets',
-                       'abinary', 'ipv6addr', 'ipv6prefix', 'short', 'byte',
-                       'signed', 'ifid', 'ether', 'tlv', 'integer64'])
-
+DATATYPES = {
+    'abinary': leaf.AscendBinary(),
+    'byte': leaf.Byte(),
+    'date': leaf.Date(),
+    'ether': leaf.Ether(),
+    'ifid': leaf.Ifid(),
+    'integer': leaf.Integer(),
+    'integer64': leaf.Integer64(),
+    'ipaddr': leaf.Ipaddr(),
+    'ipv6addr': leaf.Ipv6addr(),
+    'ipv6prefix': leaf.Ipv6prefix(),
+    'octets': leaf.Octets(),
+    'short': leaf.Short(),
+    'signed': leaf.Signed(),
+    'string': leaf.String(),
+    'tlv': structural.Tlv(),
+    'vsa': structural.Vsa()
+}
 
 class ParseError(Exception):
     """Dictionary parser exceptions.
@@ -115,13 +132,14 @@ class ParseError(Exception):
 
 
 class Attribute(object):
-    def __init__(self, name, code, datatype, is_sub_attribute=False, vendor='', values=None,
-                 encrypt=0, has_tag=False):
+    def __init__(self, name, code, datatype: str,
+                 is_sub_attribute=False, vendor='', values=None, encrypt=0,
+                 has_tag=False):
         if datatype not in DATATYPES:
             raise ValueError('Invalid data type')
         self.name = name
         self.code = code
-        self.type = datatype
+        self.type = DATATYPES[datatype]
         self.vendor = vendor
         self.encrypt = encrypt
         self.has_tag = has_tag
@@ -133,6 +151,24 @@ class Attribute(object):
             for (key, value) in values.items():
                 self.values.Add(key, value)
 
+    def decode(self, raw):
+        #  Use datatype.decode to decode leaf attributes
+        if isinstance(raw, bytes):
+            if isinstance(self.type, AbstractStructural):
+                raise ValueError('Structural datatype holding string!')
+            return self.type.decode(raw)
+
+        #  Recursively calls sub attribute's .decode() until a leaf attribute
+        #  is reached
+        for sub_attr, value in raw.items():
+            raw[sub_attr] = self.sub_attributes[sub_attr].decode(value)
+        return raw
+
+    def encode(self, decoded):
+        return self.type.encode(self, decoded)
+
+    def get_value(self, packet, offset):
+        return self.type.get_value(self, packet, offset)
 
 class Dictionary(object):
     """RADIUS dictionary class.
@@ -250,23 +286,27 @@ class Dictionary(object):
                              line=state['line'])
         if vendor:
             if is_sub_attribute:
-                key = (self.vendors.GetForward(vendor), parent_code, code)
+                key = (26, self.vendors.GetForward(vendor), parent_code, code)
             else:
-                key = (self.vendors.GetForward(vendor), code)
+                key = (26, self.vendors.GetForward(vendor), code)
         else:
             if is_sub_attribute:
                 key = (parent_code, code)
             else:
                 key = code
 
+        attr = Attribute(attribute, code, datatype, is_sub_attribute, vendor, encrypt=encrypt, has_tag=has_tag)
+
         self.attrindex.Add(attribute, key)
-        self.attributes[attribute] = Attribute(attribute, code, datatype, is_sub_attribute, vendor, encrypt=encrypt, has_tag=has_tag)
+        self.attributes[attribute] = attr
+        if vendor:
+            self.attributes['Vendor-Specific'].sub_attributes[self.vendors.GetForward(vendor)][code] = attr
         if datatype == 'tlv':
             # save attribute in tlvs
             state['tlvs'][code] = self.attributes[attribute]
         if is_sub_attribute:
             # save sub attribute in parent tlv and update their parent field
-            state['tlvs'][parent_code].sub_attributes[code] = attribute
+            state['tlvs'][parent_code].sub_attributes[code] = self.attributes[attribute]
             self.attributes[attribute].parent = state['tlvs'][parent_code]
 
     def __ParseValue(self, state, tokens, defer):
@@ -289,7 +329,7 @@ class Dictionary(object):
 
         if adef.type in ['integer', 'signed', 'short', 'byte', 'integer64']:
             value = int(value, 0)
-        value = tools.EncodeAttr(adef.type, value)
+        value = adef.encode(value)
         self.attributes[attr].values.Add(key, value)
 
     def __ParseVendor(self, state, tokens):
@@ -323,6 +363,7 @@ class Dictionary(object):
 
         (vendorname, vendor) = tokens[1:3]
         self.vendors.Add(vendorname, int(vendor, 0))
+        self.attributes['Vendor-Specific'].sub_attributes[int(vendor)] = {}
 
     def __ParseBeginVendor(self, state, tokens):
         if len(tokens) != 2:

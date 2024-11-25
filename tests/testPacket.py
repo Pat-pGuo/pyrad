@@ -124,7 +124,7 @@ class PacketTests(unittest.TestCase):
     def _get_attribute_bytes(self, attr_name, value):
         attr = self.dict.attributes[attr_name]
         attr_key = attr.code
-        attr_value = packet.tools.EncodeAttr(attr.type, value)
+        attr_value = attr.encode(None, value)
         attr_len = len(attr_value) + 2
         return struct.pack('!BB', attr_key, attr_len) + attr_value
 
