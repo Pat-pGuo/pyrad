@@ -4,7 +4,6 @@ leaf.py
 Contains all leaf datatypes (ones that can be encoded and decoded directly)
 """
 import binascii
-import enum
 import struct
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -121,6 +120,37 @@ class AscendBinary(AbstractLeaf):
         # abinary strings are stored as strings, so parse and return as is
         return string
 
+class Bool(AbstractLeaf):
+    """
+    leaf datatype class for boolean datatype
+    """
+    def __init__(self):
+        super().__init__('bool')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        # convert boolean into int, then encode into bytestring
+        return struct.pack('!B', int(decoded))
+
+    def decode(self, raw, *args, **kwargs):
+        # unpack bytes into int, then convert into boolean
+        return bool(struct.unpack('!B', raw)[0])
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        # convert bool into string, then return
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        match string.lower():
+            case 'true':
+                return True
+            case 'false':
+                return False
+            case _:
+                raise TypeError('Failed to parse bool value')
+
 class Byte(AbstractLeaf):
     """
     leaf datatype class for bytes (1 byte unsigned int)
@@ -156,6 +186,54 @@ class Byte(AbstractLeaf):
             if num > 255:
                 raise ValueError('Parsed value too large for byte')
             return num
+
+class ComboIp(AbstractLeaf):
+    """
+    leaf datatype class for combo ip
+    """
+    def __init__(self):
+        super().__init__('combo-ip')
+
+        self.ipv4 = Ipaddr()
+        self.ipv6 = Ipv6addr()
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        if not isinstance(decoded, str):
+            raise TypeError(f'Can not encode non-string as combo-ip')
+        # since IPv4 and IPv6 addresses are stored as strings, so should
+        # combo-p be. As such, we can simply check if the IP address contains
+        # a '.' to know if we are working with an IPv4 or IPv6 address
+        # simply use the pre-existing encode functions to encode the value
+        if len(decoded.split('.')) == 4:
+            return self.ipv4.encode(attribute, decoded, args, kwargs)
+        return self.ipv6.encode(attribute, decoded, args, kwargs)
+
+    def decode(self, raw: bytes, *args, **kwargs) -> any:
+        # based on the number of bytes, we know what we are working with
+        match len(raw):
+            case 4:
+                return self.ipv4.decode(raw)
+            case 16:
+                return self.ipv6.decode(raw)
+            case _:
+                raise ValueError('Invalid number of bytes for combo-ip')
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        # since we store the IP as a string, just return it
+        return decoded
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        # try to parse as ipv4 first, if failed, try as ipv6
+        try:
+            return IPv4Address(string).exploded
+        except AddressValueError:
+            try:
+                return IPv6Address(string).exploded
+            except AddressValueError as e:
+                raise TypeError(f'Parsing invalid combo-ip address') from e
 
 class Date(AbstractLeaf):
     """
@@ -340,6 +418,35 @@ class Ipaddr(AbstractLeaf):
             return IPv4Address(string).exploded
         except AddressValueError as e:
             raise TypeError('Parsing invalid IPv4 address') from e
+
+class Ipv4prefix(AbstractLeaf):
+    """
+    leaf datatype class for ipv4 addresses
+    """
+    def __init__(self):
+        super().__init__('ipv4prefix')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        prefix_length = decoded.prefixlen
+        address = list(map(lambda x: int(x), decoded.network_address.exploded.split('.')))
+
+        return struct.pack('!BBBBBB', *([0, prefix_length] + address))
+
+    def decode(self, raw, *args, **kwargs):
+        # decode the reserved, length, and prefix fields
+        (_, prefix_length) = struct.unpack('!BB', raw[0:2])
+        # decode the address
+        address = '.'.join(map(lambda x: str(x) ,struct.unpack('!BBBB', raw[2:6])))
+        return IPv4Network(f'{address}/{prefix_length}')
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return decoded.exploded
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        return IPv4Network(string)
 
 class Ipv6addr(AbstractLeaf):
     """
