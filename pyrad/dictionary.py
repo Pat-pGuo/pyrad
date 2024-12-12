@@ -84,19 +84,28 @@ from pyrad.datatypes.structural import AbstractStructural
 DATATYPES = {
     #  leaf attributes
     'abinary': leaf.AscendBinary(),
+    'bool': leaf.Bool(),
     'byte': leaf.Byte(),
+    'comboip': leaf.ComboIp(),
     'date': leaf.Date(),
     'ether': leaf.Ether(),
+    'float32': leaf.Float32(),
     'ifid': leaf.Ifid(),
     'integer': leaf.Integer(),
     'integer64': leaf.Integer64(),
+    'int64': leaf.Int64(),
     'ipaddr': leaf.Ipaddr(),
+    'ipv4prefix': leaf.Ipv4prefix(),
     'ipv6addr': leaf.Ipv6addr(),
     'ipv6prefix': leaf.Ipv6prefix(),
     'octets': leaf.Octets(),
     'short': leaf.Short(),
     'signed': leaf.Signed(),
     'string': leaf.String(),
+    'uint8': leaf.Uint8(),
+    'uint16': leaf.Uint16(),
+    'uint32': leaf.Uint32(),
+    'uint64': leaf.Uint64(),
 
     #  structural attributes
     'tlv': structural.Tlv(),
