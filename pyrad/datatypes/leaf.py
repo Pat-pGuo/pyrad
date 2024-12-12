@@ -293,6 +293,38 @@ class Ether(AbstractLeaf, ABC):
         except core.AddrFormatError as e:
             raise ValueError('Could not decode ethernet address') from e
 
+class Float32(AbstractLeaf):
+    """
+    leaf datatype class for float32
+    """
+
+    def __init__(self):
+        super().__init__('float32')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        try:
+            num = float(decoded)
+        except Exception as exc:
+            raise TypeError('Can not encode non-float as float32') from exc
+        return struct.pack('!f', num)
+
+    def decode(self, raw, *args, **kwargs):
+        return struct.unpack('!f', raw)[0]
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            num = float(string)
+        except ValueError as e:
+            raise TypeError('Can not parse non-float as float32') from e
+        else:
+            return num
+
 class Ifid(AbstractLeaf, ABC):
     """
     leaf datatype class for IFID (IPV6 interface ID)
@@ -385,6 +417,42 @@ class Integer64(AbstractLeaf):
             if num < 0:
                 raise ValueError('Parsed value too small for int64')
             if num > 18446744073709551615:
+                raise ValueError('Parsed value too large for int64')
+            return num
+
+class Int64(AbstractLeaf):
+    """
+    leaf datatype class for int64
+    """
+
+    def __init__(self):
+        super().__init__('int64')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        try:
+            num = int(decoded)
+        except Exception as exc:
+            raise TypeError('Can not encode non-integer as int64') from exc
+        return struct.pack('!q', num)
+
+    def decode(self, raw, *args, **kwargs):
+        return struct.unpack('!q', raw)[0]
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            num = int(string)
+        except ValueError as e:
+            raise TypeError('Can not parse non-integer as int64') from e
+        else:
+            if num < -9223372036854775808:
+                raise ValueError('Parsed value too small for int64')
+            if num > 9223372036854775807:
                 raise ValueError('Parsed value too large for int64')
             return num
 
@@ -652,3 +720,146 @@ class String(AbstractLeaf):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
         return string
+
+class Uint8(AbstractLeaf):
+    """
+    leaf datatype class for uint8
+    """
+    def __init__(self):
+        super().__init__('uint8')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        try:
+            num = int(decoded)
+        except Exception as exc:
+            raise TypeError('Can not encode non-integer as uint8') from exc
+        return struct.pack('!B', num)
+
+    def decode(self, raw, *args, **kwargs):
+        return struct.unpack('!B', raw)[0]
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            num = int(string)
+        except ValueError as e:
+            raise TypeError('Can not parse non-integer as uint8') from e
+        else:
+            if num < 0:
+                raise ValueError('Parsed value too small for uint8')
+            if num > 255:
+                raise ValueError('Parsed value too large for uint8')
+            return num
+
+class Uint16(AbstractLeaf):
+    """
+    leaf datatype class for uint16
+    """
+
+    def __init__(self):
+        super().__init__('uint16')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        try:
+            num = int(decoded)
+        except Exception as exc:
+            raise TypeError('Can not encode non-integer as uint16') from exc
+        return struct.pack('!H', num)
+
+    def decode(self, raw, *args, **kwargs):
+        return struct.unpack('!H', raw)[0]
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            num = int(string)
+        except ValueError as e:
+            raise TypeError('Can not parse non-integer as uint16') from e
+        else:
+            if num < 0:
+                raise ValueError('Parsed value too small for uint16')
+            if num > 65535:
+                raise ValueError('Parsed value too large for uint16')
+            return num
+
+class Uint32(AbstractLeaf):
+    """
+    leaf datatype class for uint32
+    """
+
+    def __init__(self):
+        super().__init__('uint32')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        try:
+            num = int(decoded)
+        except Exception as exc:
+            raise TypeError('Can not encode non-integer as uint32') from exc
+        return struct.pack('!I', num)
+
+    def decode(self, raw, *args, **kwargs):
+        return struct.unpack('!I', raw)[0]
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            num = int(string)
+        except ValueError as e:
+            raise TypeError('Can not parse non-integer as uint32') from e
+        else:
+            if num < 0:
+                raise ValueError('Parsed value too small for uint32')
+            if num > 4294967295:
+                raise ValueError('Parsed value too large for uint32')
+            return num
+
+class Uint64(AbstractLeaf):
+    """
+    leaf datatype class for uint64
+    """
+
+    def __init__(self):
+        super().__init__('uint64')
+
+    def encode(self, attribute, decoded, *args, **kwargs):
+        try:
+            num = int(decoded)
+        except Exception as exc:
+            raise TypeError('Can not encode non-integer as uint64') from exc
+        return struct.pack('!Q', num)
+
+    def decode(self, raw, *args, **kwargs):
+        return struct.unpack('!Q', raw)[0]
+
+    def print(self, attribute, decoded, *args, **kwargs):
+        return str(decoded)
+
+    def parse(self, dictionary, string, *args, **kwargs):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            num = int(string)
+        except ValueError as e:
+            raise TypeError('Can not parse non-integer as uint64') from e
+        else:
+            if num < 0:
+                raise ValueError('Parsed value too small for uint64')
+            if num > 18446744073709551615:
+                raise ValueError('Parsed value too large for uint64')
+            return num
