@@ -50,7 +50,7 @@ class AscendBinary(AbstractLeaf):
     def __init__(self):
         super().__init__('abinary')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         terms = {
             'family': b'\x01',
             'action': b'\x00',
@@ -108,12 +108,12 @@ class AscendBinary(AbstractLeaf):
         #  just return the raw binary string
         return raw
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         #  the binary string is what we are looking for
         return decoded
 
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -127,7 +127,7 @@ class Bool(AbstractLeaf):
     def __init__(self):
         super().__init__('bool')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         # convert boolean into int, then encode into bytestring
         return struct.pack('!B', int(decoded))
 
@@ -135,11 +135,11 @@ class Bool(AbstractLeaf):
         # unpack bytes into int, then convert into boolean
         return bool(struct.unpack('!B', raw)[0])
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         # convert bool into string, then return
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -158,7 +158,7 @@ class Byte(AbstractLeaf):
     def __init__(self):
         super().__init__('byte')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -168,11 +168,11 @@ class Byte(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!B', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         #  cast int to string before returning
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -197,7 +197,7 @@ class ComboIp(AbstractLeaf):
         self.ipv4 = Ipaddr()
         self.ipv6 = Ipv6addr()
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         if not isinstance(decoded, str):
             raise TypeError(f'Can not encode non-string as combo-ip')
         # since IPv4 and IPv6 addresses are stored as strings, so should
@@ -205,8 +205,8 @@ class ComboIp(AbstractLeaf):
         # a '.' to know if we are working with an IPv4 or IPv6 address
         # simply use the pre-existing encode functions to encode the value
         if len(decoded.split('.')) == 4:
-            return self.ipv4.encode(attribute, decoded, args, kwargs)
-        return self.ipv6.encode(attribute, decoded, args, kwargs)
+            return self.ipv4.encode(attribute, decoded)
+        return self.ipv6.encode(attribute, decoded)
 
     def decode(self, raw: bytes, *args, **kwargs) -> any:
         # based on the number of bytes, we know what we are working with
@@ -218,11 +218,11 @@ class ComboIp(AbstractLeaf):
             case _:
                 raise ValueError('Invalid number of bytes for combo-ip')
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         # since we store the IP as a string, just return it
         return decoded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -242,7 +242,7 @@ class Date(AbstractLeaf):
     def __init__(self):
         super().__init__('date')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         if not isinstance(decoded, int):
             raise TypeError('Can not encode non-integer as date')
         return struct.pack('!I', decoded)
@@ -251,11 +251,11 @@ class Date(AbstractLeaf):
         #  dates are stored as ints
         return (struct.unpack('!I', raw))[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         #  turn seconds since epoch into timestamp with given format
         return datetime.fromtimestamp(decoded).strftime('%Y-%m-%dT%H:%M:%S')
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -274,17 +274,17 @@ class Ether(AbstractLeaf, ABC):
     def __init__(self):
         super().__init__('ether')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         return struct.pack('!6B', *map(lambda x: int(x, 16), decoded.split(':')))
 
     def decode(self, raw, *args, **kwargs):
         #  return EUI object containing mac address
         return EUI(':'.join(map('{0:02x}'.format, struct.unpack('!6B', raw))))
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return decoded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError('Can not encode non-string as ethernet address')
 
@@ -301,7 +301,7 @@ class Float32(AbstractLeaf):
     def __init__(self):
         super().__init__('float32')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = float(decoded)
         except Exception as exc:
@@ -311,10 +311,10 @@ class Float32(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!f', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -332,18 +332,18 @@ class Ifid(AbstractLeaf, ABC):
     def __init__(self):
         super().__init__('ifid')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         struct.pack('!HHHH', *map(lambda x: int(x, 16), decoded.split(':')))
 
     def decode(self, raw, *args, **kwargs):
         ':'.join(map('{0:04x}'.format, struct.unpack('!HHHH', raw)))
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         # Following freeradius, IFIDs are displayed as a hex without any
         # delimiters
         return decoded.replace(':', '')
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -357,7 +357,7 @@ class Integer(AbstractLeaf):
     def __init__(self):
         super().__init__('integer')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -367,10 +367,10 @@ class Integer(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!I', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -392,7 +392,7 @@ class Integer64(AbstractLeaf):
     def __init__(self):
         super().__init__('integer64')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -402,10 +402,10 @@ class Integer64(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!Q', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -428,7 +428,7 @@ class Int64(AbstractLeaf):
     def __init__(self):
         super().__init__('int64')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -438,10 +438,10 @@ class Int64(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!q', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -463,7 +463,7 @@ class Ipaddr(AbstractLeaf):
     def __init__(self):
         super().__init__('ipaddr')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         if not isinstance(decoded, str):
             raise TypeError('Address has to be a string')
         return IPv4Address(decoded).packed
@@ -472,11 +472,11 @@ class Ipaddr(AbstractLeaf):
         #  stored as strings, not ipaddress objects
         return '.'.join(map(str, struct.unpack('BBBB', raw)))
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         #  since object is already stored as a string, just return it as is
         return decoded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -494,7 +494,7 @@ class Ipv4prefix(AbstractLeaf):
     def __init__(self):
         super().__init__('ipv4prefix')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         prefix_length = decoded.prefixlen
         address = list(map(lambda x: int(x), decoded.network_address.exploded.split('.')))
 
@@ -507,10 +507,10 @@ class Ipv4prefix(AbstractLeaf):
         address = '.'.join(map(lambda x: str(x) ,struct.unpack('!BBBB', raw[2:6])))
         return IPv4Network(f'{address}/{prefix_length}')
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return decoded.exploded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -523,7 +523,7 @@ class Ipv6addr(AbstractLeaf):
     def __init__(self):
         super().__init__('ipv6addr')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         if not isinstance(decoded, str):
             raise TypeError('IPv6 Address has to be a string')
         return IPv6Address(decoded).packed
@@ -535,7 +535,7 @@ class Ipv6addr(AbstractLeaf):
         )
         return str(IPv6Address(prefix))
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         if not isinstance(decoded, str):
             raise TypeError(f'Parsing expects a string, got {type(decoded)}')
 
@@ -545,7 +545,7 @@ class Ipv6addr(AbstractLeaf):
         except AddressValueError as e:
             raise TypeError('Parsing invalid IPv6 address') from e
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         return string
 
 class Ipv6prefix(AbstractLeaf):
@@ -555,7 +555,7 @@ class Ipv6prefix(AbstractLeaf):
     def __init__(self):
         super().__init__('ipv6prefix')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         if not isinstance(decoded, str):
             raise TypeError('IPv6 Prefix has to be a string')
         ip = IPv6Network(decoded)
@@ -570,11 +570,11 @@ class Ipv6prefix(AbstractLeaf):
         #  returns string representation in the form of <Prefix>/<prefix len>
         return str(IPv6Network(f'{prefix}/{int(length, 16)}'))
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         #  we already store this value as a string, so just return it as is
         return decoded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -590,7 +590,7 @@ class Octets(AbstractLeaf):
     def __init__(self):
         super().__init__('octets')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         # Check for max length of the hex encoded with 0x prefix, as a sanity check
         if len(decoded) > 508:
             raise ValueError('Can only encode strings of <= 253 characters')
@@ -616,10 +616,10 @@ class Octets(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return raw
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return decoded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -632,7 +632,7 @@ class Short(AbstractLeaf):
     def __init__(self):
         super().__init__('short')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -642,10 +642,10 @@ class Short(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!H', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -667,7 +667,7 @@ class Signed(AbstractLeaf):
     def __init__(self):
         super().__init__('signed')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -677,10 +677,10 @@ class Signed(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!i', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -702,7 +702,7 @@ class String(AbstractLeaf):
     def __init__(self):
         super().__init__('string')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         if len(decoded) > 253:
             raise ValueError('Can only encode strings of <= 253 characters')
         if isinstance(decoded, str):
@@ -712,10 +712,10 @@ class String(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return raw.decode('utf-8')
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return decoded
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -728,7 +728,7 @@ class Uint8(AbstractLeaf):
     def __init__(self):
         super().__init__('uint8')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -738,10 +738,10 @@ class Uint8(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!B', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -764,7 +764,7 @@ class Uint16(AbstractLeaf):
     def __init__(self):
         super().__init__('uint16')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -774,10 +774,10 @@ class Uint16(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!H', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -800,7 +800,7 @@ class Uint32(AbstractLeaf):
     def __init__(self):
         super().__init__('uint32')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -810,10 +810,10 @@ class Uint32(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!I', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 
@@ -836,7 +836,7 @@ class Uint64(AbstractLeaf):
     def __init__(self):
         super().__init__('uint64')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         try:
             num = int(decoded)
         except Exception as exc:
@@ -846,10 +846,10 @@ class Uint64(AbstractLeaf):
     def decode(self, raw, *args, **kwargs):
         return struct.unpack('!Q', raw)[0]
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         return str(decoded)
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         if not isinstance(string, str):
             raise TypeError(f'Parsing expects a string, got {type(string)}')
 

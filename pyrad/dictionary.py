@@ -169,17 +169,15 @@ class Attribute(object):
         # defined by this attribute
         self.attrindex = bidict.BiDict()
 
-    def encode(self, decoded: any, *args, **kwargs) -> bytes:
+    def encode(self, decoded: any) -> bytes:
         """
         encodes value with attribute datatype
         @param decoded: value to encode
         @type decoded: any
-        @param args:
-        @param kwargs:
         @return: encoding of object
         @rtype: bytes
         """
-        return self.type.encode(self, decoded, args, kwargs)
+        return self.type.encode(self, decoded)
 
     def decode(self, raw: bytes|dict) -> any:
         """

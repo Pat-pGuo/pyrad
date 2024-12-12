@@ -18,46 +18,37 @@ class AbstractDatatype(ABC):
         self.name = name
 
     @abstractmethod
-    def encode(self, attribute: 'Attribute', decoded: any,
-               *args, **kwargs) -> bytes:
+    def encode(self, attribute: 'Attribute', decoded: any) -> bytes:
         """
         python data structure into bytestring
         :param attribute: dictionary attribute
         :type attribute: pyrad.dictionary.Attribute class
         :param decoded: decoded value
         :type decoded: any
-        :param args:
-        :param kwargs:
         :return: bytestring encoding
         :rtype: bytes
         """
 
     @abstractmethod
-    def print(self, attribute: 'Attribute', decoded: any,
-              *args, **kwargs) -> str:
+    def print(self, attribute: 'Attribute', decoded: any) -> str:
         """
         python data structure into string
         :param attribute: dictionary attribute
         :type attribute: pyrad.dictionary.Attribute class
         :param decoded: decoded value
         :type decoded: any
-        :param args:
-        :param kwargs:
         :return: string representation
         :rtype: str
         """
 
     @abstractmethod
-    def parse(self, dictionary: 'Dictionary', string: str,
-              *args, **kwargs) -> any:
+    def parse(self, dictionary: 'Dictionary', string: str) -> any:
         """
         python data structure from string
         :param dictionary: RADIUS dictionary
         :type dictionary: pyrad.dictionary.Dictionary class
         :param string: string representation of object
         :type string: str
-        :param args:
-        :param kwargs:
         :return: python datat structure
         :rtype: any
         """

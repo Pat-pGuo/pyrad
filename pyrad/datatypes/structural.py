@@ -24,10 +24,10 @@ class Tlv(AbstractStructural):
     def __init__(self):
         super().__init__('tlv')
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         encoding = b''
         for key, value in decoded.items():
-            encoding += attribute.children[key].encode(value, )
+            encoding += attribute.children[key].encode(value)
 
         if len(encoding) + 2 > 255:
             raise ValueError('TLV length too long for one packet')
@@ -62,12 +62,12 @@ class Tlv(AbstractStructural):
             cursor += sub_offset
         return sub_attrs, outer_len
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         sub_attr_strings = [sub_attr.print()
                             for sub_attr in attribute.children]
         return f"{attribute.name} = {{ {', '.join(sub_attr_strings)} }}"
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         return tlv_name_to_codes(dictionary, parser_tlv.parse(string))
 
 class Vsa(AbstractStructural):
@@ -80,11 +80,11 @@ class Vsa(AbstractStructural):
         #  used for get_value()
         self.tlv = Tlv()
 
-    def encode(self, attribute, decoded, *args, **kwargs):
+    def encode(self, attribute, decoded):
         encoding = b''
 
         for key, value in decoded.items():
-            encoding += attribute.children[key].encode(value, )
+            encoding += attribute.children[key].encode(value)
 
         return (struct.pack('!B', attribute.number)
                 + struct.pack('!B', len(encoding) + 4)
@@ -113,10 +113,10 @@ class Vsa(AbstractStructural):
 
         return {vendor: values}, length
 
-    def print(self, attribute, decoded, *args, **kwargs):
+    def print(self, attribute, decoded):
         sub_attr_strings = [sub_attr.print()
                             for sub_attr in attribute.children]
         return f"Vendor-Specific = {{ {attribute.vendor} = {{ {', '.join(sub_attr_strings)} }}"
 
-    def parse(self, dictionary, string, *args, **kwargs):
+    def parse(self, dictionary, string):
         return vsa_name_to_codes(dictionary, parser_tlv.parse(string))
