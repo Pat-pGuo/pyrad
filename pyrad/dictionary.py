@@ -205,7 +205,7 @@ class Attribute(object):
             raw[sub_attr] = self.children[sub_attr].decode(value)
         return raw
 
-    def get_value(self, packet: bytes, offset: int) -> (tuple[((int, ...), bytes | dict), ...], int):
+    def get_value(self, packet: bytes, offset: int):
         """
         gets encapsulated value from attribute
         @type: dictionary: Dictionary
@@ -217,7 +217,7 @@ class Attribute(object):
         @return: encapsulated value, bytes read
         @rtype: any, int
         """
-        return self.type.get_value(self, packet, offset)
+        return self.type.get_value(self, packet, offset, 0)
 
     def __getitem__(self, key):
         if isinstance(key, int):
