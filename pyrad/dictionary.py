@@ -102,6 +102,7 @@ DATATYPES = {
     'short': leaf.Short(),
     'signed': leaf.Signed(),
     'string': leaf.String(),
+    'time': leaf.Time(),
     'uint8': leaf.Uint8(),
     'uint16': leaf.Uint16(),
     'uint32': leaf.Uint32(),

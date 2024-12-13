@@ -721,6 +721,41 @@ class String(AbstractLeaf):
 
         return string
 
+class Time(AbstractLeaf):
+    """
+    leaf datatype class for time (RFC8044)
+    """
+
+    def __init__(self):
+        super().__init__('time')
+
+    def encode(self, attribute, decoded):
+        if not isinstance(decoded, datetime):
+            raise TypeError('Can not encode non datetime object as time')
+
+        # take the seconds since epoch the timestamp represents, encode it as
+        # an unsigned int, then return the encoding
+        return struct.pack('!I', int(decoded.timestamp()))
+
+    def decode(self, raw, *args, **kwargs):
+        # return a datetime object with a timestamp using the number of seconds
+        # since epoch as specified by the raw value
+        return datetime.fromtimestamp(struct.unpack('!I', raw)[0])
+
+    def print(self, attribute, decoded):
+        if not isinstance(decoded, datetime):
+            raise TypeError('Can not print non datetime object as time')
+        return decoded.strftime('%Y-%m-%dT%H:%M:%S')
+
+    def parse(self, dictionary, string):
+        if not isinstance(string, str):
+            raise TypeError(f'Parsing expects a string, got {type(string)}')
+
+        try:
+            return datetime.strptime(string, '%Y-%m-%dT%H:%M:%S')
+        except ValueError as e:
+            raise TypeError('Failed to parse time') from e
+
 class Uint8(AbstractLeaf):
     """
     leaf datatype class for uint8
