@@ -169,7 +169,8 @@ class Tlv(AbstractStructural):
             )
             tlvs.setdefault(sub_type, []).append(sub_value)
 
-            cursor += sub_offset
+            # move cursor forward by additional two to account for headers
+            cursor += sub_offset + 2
         return tlvs, length
 
     def print(self, attribute, decoded):
@@ -207,7 +208,7 @@ class Vsa(AbstractStructural):
 
         # minimum 4 bytes for vendor-id + 3 bytes for 1 tlv
         if length < 7:
-            return {packet[offset + 2:offset + length]: {}}, length
+            return {packet[offset:offset + length]: {}}, length
 
         vendor = struct.unpack('!L', packet[offset:offset + 4])[0]
 
@@ -218,7 +219,7 @@ class Vsa(AbstractStructural):
 
             tlvs[sub_type], sub_offset = attribute[vendor][
                 sub_type].get_value(packet, cursor + 2, sub_length - 2)
-            cursor += sub_offset
+            cursor += sub_offset + 2
 
         return {vendor: tlvs}, length
 

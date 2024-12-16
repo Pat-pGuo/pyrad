@@ -536,7 +536,7 @@ class Dictionary(object):
         self.attributes['Vendor-Specific'][name] = Vendor(name, int(number))
 
     def __ParseBeginVendor(self, state, tokens):
-        if len(tokens) > 3:
+        if len(tokens) not in range(2, 4):
             raise ParseError(
                     'Incorrect number of tokens for begin-vendor statement',
                     file=state['file'],
