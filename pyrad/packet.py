@@ -707,14 +707,17 @@ class Packet(OrderedDict):
                 # attribute action functions must have the same signature
                 self.attr_actions[attribute.name](attribute, packet, cursor)
 
-            raw, offset = attribute.get_value(packet, cursor)
+            _, length = struct.unpack('!BB', packet[cursor:cursor + 2])
+            raw, offset = attribute.get_value(packet, cursor + 2, length - 2)
 
             # merge the raw values into the packet values
             # this is only important for vendor attributes
             self.__values_merge(attribute, raw)
 
             # move cursor forward by amount of bytes read
-            cursor += offset
+            # we add 2 to account for the type and length headers that the
+            # get_value() doesn't read internally
+            cursor += offset + 2
 
     def __values_merge(self, attribute: Attribute, raw: bytes|dict) -> None:
         """

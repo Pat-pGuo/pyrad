@@ -71,6 +71,8 @@ These datatypes are parsed but not supported:
 |               | where 'h' is hex digits, upper or lowercase. |
 +---------------+----------------------------------------------+
 """
+import struct
+
 from pyrad import bidict
 from pyrad import dictfile
 from copy import copy
@@ -205,9 +207,10 @@ class Attribute(object):
             raw[sub_attr] = self.children[sub_attr].decode(value)
         return raw
 
-    def get_value(self, packet: bytes, offset: int):
+    def get_value(self, packet: bytes, offset: int, length):
         """
         gets encapsulated value from attribute
+        @param length:
         @type: dictionary: Dictionary
         @type: code: tuple of ints
         @param packet: packet in bytestring
@@ -217,7 +220,9 @@ class Attribute(object):
         @return: encapsulated value, bytes read
         @rtype: any, int
         """
-        return self.type.get_value(self, packet, offset, 0)
+        # trim off the type and length fields from the attribute and pass in
+        # everything after to the datatype.get_value() func
+        return self.type.get_value(self, packet, offset, length)
 
     def __getitem__(self, key):
         if isinstance(key, int):
@@ -531,7 +536,7 @@ class Dictionary(object):
         self.attributes['Vendor-Specific'][name] = Vendor(name, int(number))
 
     def __ParseBeginVendor(self, state, tokens):
-        if len(tokens) != 2:
+        if len(tokens) > 3:
             raise ParseError(
                     'Incorrect number of tokens for begin-vendor statement',
                     file=state['file'],
@@ -547,7 +552,26 @@ class Dictionary(object):
 
         state['vendor'] = name
 
-        vendor = self.attributes['Vendor-Specific'][name]
+        if len(tokens) == 3:
+            fmt = tokens[2].split('=')
+            match fmt[1]:
+                case 'Extended-Vendor-Specific-1':
+                    vsa = self.attributes['Extended-Attribute-1']['Extended-Vendor-Specific-1']
+                case 'Extended-Vendor-Specific-2':
+                    vsa = self.attributes['Extended-Attribute-2']['Extended-Vendor-Specific-2']
+                case 'Extended-Vendor-Specific-3':
+                    vsa = self.attributes['Extended-Attribute-3']['Extended-Vendor-Specific-3']
+                case 'Extended-Vendor-Specific-4':
+                    vsa = self.attributes['Extended-Attribute-4']['Extended-Vendor-Specific-4']
+                case 'Extended-Vendor-Specific-5':
+                    vsa = self.attributes['Extended-Attribute-5']['Extended-Vendor-Specific-5']
+                case 'Extended-Vendor-Specific-6':
+                    vsa = self.attributes['Extended-Attribute-6']['Extended-Vendor-Specific-6']
+                case _:
+                    raise ValueError(f'Unknown VSA format {fmt[1]}')
+        else:
+            vsa = self.attributes['Vendor-Specific']
+        vendor = vsa[name]
         self.stack.push(vendor, vendor.attrindex)
 
     def __ParseEndVendor(self, state, tokens):

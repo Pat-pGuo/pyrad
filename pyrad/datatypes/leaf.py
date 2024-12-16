@@ -39,8 +39,8 @@ class AbstractLeaf(base.AbstractDatatype, ABC):
         :return: python data structure
         """
 
-    def get_value(self, attribute, packet, offset, length, flags=None):
-        return packet[offset + 2:offset + length], length
+    def get_value(self, attribute, packet, offset, length, *args, **kwargs):
+        return packet[offset:offset + length], length
 
 class AscendBinary(AbstractLeaf):
     """

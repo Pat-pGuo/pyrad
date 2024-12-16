@@ -55,7 +55,7 @@ class AbstractDatatype(ABC):
 
     @abstractmethod
     def get_value(self, attribute: 'Attribute', packet: bytes, offset: int,
-                  length: int, flags=None):
+                  length: int, *args, **kwargs):
         """
         gets encapsulated value
 
@@ -73,7 +73,8 @@ class AbstractDatatype(ABC):
         tuple of (key, value) pairs, a single bytestring or dict will be
         returned.
 
-        :param flags:
+        :param *args:
+        :param **kwargs:
         :param length:
         :param attribute: dictionary attribute
         :type attribute: pyrad.dictionary.Attribute class
