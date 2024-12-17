@@ -85,34 +85,34 @@ from pyrad.datatypes.structural import AbstractStructural
 
 DATATYPES = {
     #  leaf attributes
-    'abinary': leaf.AscendBinary(),
-    'bool': leaf.Bool(),
-    'byte': leaf.Byte(),
-    'comboip': leaf.ComboIp(),
-    'date': leaf.Date(),
-    'ether': leaf.Ether(),
-    'float32': leaf.Float32(),
-    'ifid': leaf.Ifid(),
-    'integer': leaf.Integer(),
-    'integer64': leaf.Integer64(),
-    'int64': leaf.Int64(),
-    'ipaddr': leaf.Ipaddr(),
-    'ipv4prefix': leaf.Ipv4prefix(),
-    'ipv6addr': leaf.Ipv6addr(),
-    'ipv6prefix': leaf.Ipv6prefix(),
-    'octets': leaf.Octets(),
-    'short': leaf.Short(),
-    'signed': leaf.Signed(),
-    'string': leaf.String(),
-    'time': leaf.Time(),
-    'uint8': leaf.Uint8(),
-    'uint16': leaf.Uint16(),
-    'uint32': leaf.Uint32(),
-    'uint64': leaf.Uint64(),
+    'abinary': leaf.AscendBinary,
+    'bool': leaf.Bool,
+    'byte': leaf.Byte,
+    'comboip': leaf.ComboIp,
+    'date': leaf.Date,
+    'ether': leaf.Ether,
+    'float32': leaf.Float32,
+    'ifid': leaf.Ifid,
+    'integer': leaf.Integer,
+    'integer64': leaf.Integer64,
+    'int64': leaf.Int64,
+    'ipaddr': leaf.Ipaddr,
+    'ipv4prefix': leaf.Ipv4prefix,
+    'ipv6addr': leaf.Ipv6addr,
+    'ipv6prefix': leaf.Ipv6prefix,
+    'octets': leaf.Octets,
+    'short': leaf.Short,
+    'signed': leaf.Signed,
+    'string': leaf.String,
+    'time': leaf.Time,
+    'uint8': leaf.Uint8,
+    'uint16': leaf.Uint16,
+    'uint32': leaf.Uint32,
+    'uint64': leaf.Uint64,
 
     #  structural attributes
-    'tlv': structural.Tlv(),
-    'vsa': structural.Vsa()
+    'tlv': structural.Tlv,
+    'vsa': structural.Vsa
 }
 
 class ParseError(Exception):
@@ -148,13 +148,13 @@ class Attribute(object):
     class to represent an attribute as defined by the radius dictionaries
     """
     def __init__(self, name, number, datatype, parent=None, vendor=None,
-                 values=None, encrypt=0, tags=None):
+                 values=None, encrypt=0, tags=None, *args, **kwargs):
         if datatype not in DATATYPES:
             raise ValueError('Invalid data type')
         self.name = name
         self.number = number
         # store a datatype object as the Attribute type
-        self.type = DATATYPES[datatype]
+        self.type = DATATYPES[datatype](*args, **kwargs)
         # parent is used to denote TLV parents, this does not include vendors
         self.parent = parent
         self.vendor = vendor
@@ -394,6 +394,8 @@ class Dictionary(object):
         inline_vendor = False
         has_tag = False
         encrypt = 0
+        args = []
+        flags = {}
         if len(tokens) >= 5:
             def keyval(o):
                 kv = o.split('=')
@@ -412,6 +414,10 @@ class Dictionary(object):
                                 file=state['file'],
                                 line=state['line'])
                     encrypt = int(val)
+                elif val is None:
+                    args.append(key)
+                else:
+                    flags[key] = val
 
             if (not has_tag) and encrypt == 0:
                 vendor = tokens[4]
@@ -461,7 +467,7 @@ class Dictionary(object):
                              line=state['line'])
 
         attribute = Attribute(name, code, datatype, parent, vendor,
-                              encrypt=encrypt, tags=has_tag)
+                              encrypt=encrypt, tags=has_tag, *args, **flags)
 
         # if detected an inline vendor (vendor in the flags field), set the
         # attribute under the vendor's attributes

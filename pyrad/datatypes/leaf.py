@@ -6,7 +6,7 @@ Contains all leaf datatypes (ones that can be encoded and decoded directly)
 import binascii
 import struct
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from ipaddress import IPv4Address, IPv6Network, IPv6Address, IPv4Network, \
     AddressValueError
 
@@ -46,7 +46,7 @@ class AscendBinary(AbstractLeaf):
     """
     leaf datatype class for ascend binary
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('abinary')
 
     def encode(self, attribute, decoded):
@@ -123,7 +123,7 @@ class Bool(AbstractLeaf):
     """
     leaf datatype class for boolean datatype
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('bool')
 
     def encode(self, attribute, decoded):
@@ -154,7 +154,7 @@ class Byte(AbstractLeaf):
     """
     leaf datatype class for bytes (1 byte unsigned int)
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('byte')
 
     def encode(self, attribute, decoded):
@@ -190,7 +190,7 @@ class ComboIp(AbstractLeaf):
     """
     leaf datatype class for combo ip
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('combo-ip')
 
         self.ipv4 = Ipaddr()
@@ -238,7 +238,7 @@ class Date(AbstractLeaf):
     """
     leaf datatype class for dates
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('date')
 
     def encode(self, attribute, decoded):
@@ -270,7 +270,7 @@ class Ether(AbstractLeaf, ABC):
     """
     leaf datatype class for ethernet addresses
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('ether')
 
     def encode(self, attribute, decoded):
@@ -297,7 +297,7 @@ class Float32(AbstractLeaf):
     leaf datatype class for float32
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('float32')
 
     def encode(self, attribute, decoded):
@@ -328,7 +328,7 @@ class Ifid(AbstractLeaf, ABC):
     """
     leaf datatype class for IFID (IPV6 interface ID)
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('ifid')
 
     def encode(self, attribute, decoded):
@@ -353,7 +353,7 @@ class Integer(AbstractLeaf):
     """
     leaf datatype class for integers
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('integer')
 
     def encode(self, attribute, decoded):
@@ -388,7 +388,7 @@ class Integer64(AbstractLeaf):
     """
     leaf datatype class for 64bit integers
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('integer64')
 
     def encode(self, attribute, decoded):
@@ -424,7 +424,7 @@ class Int64(AbstractLeaf):
     leaf datatype class for int64
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('int64')
 
     def encode(self, attribute, decoded):
@@ -459,7 +459,7 @@ class Ipaddr(AbstractLeaf):
     """
     leaf datatype class for ipv4 addresses
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('ipaddr')
 
     def encode(self, attribute, decoded):
@@ -490,7 +490,7 @@ class Ipv4prefix(AbstractLeaf):
     """
     leaf datatype class for ipv4 addresses
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('ipv4prefix')
 
     def encode(self, attribute, decoded):
@@ -519,7 +519,7 @@ class Ipv6addr(AbstractLeaf):
     """
     leaf datatype class for ipv6 addresses
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('ipv6addr')
 
     def encode(self, attribute, decoded):
@@ -551,7 +551,7 @@ class Ipv6prefix(AbstractLeaf):
     """
     leaf datatype class for ipv6 prefixes
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('ipv6prefix')
 
     def encode(self, attribute, decoded):
@@ -586,7 +586,7 @@ class Octets(AbstractLeaf):
     """
     leaf datatype class for octets
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('octets')
 
     def encode(self, attribute, decoded):
@@ -628,7 +628,7 @@ class Short(AbstractLeaf):
     """
     leaf datatype class for short integers
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('short')
 
     def encode(self, attribute, decoded):
@@ -663,7 +663,7 @@ class Signed(AbstractLeaf):
     """
     leaf datatype class for signed integers
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('signed')
 
     def encode(self, attribute, decoded):
@@ -698,7 +698,7 @@ class String(AbstractLeaf):
     """
     leaf datatype class for strings
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('string')
 
     def encode(self, attribute, decoded):
@@ -725,7 +725,7 @@ class Time(AbstractLeaf):
     leaf datatype class for time (RFC8044)
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('time')
 
     def encode(self, attribute, decoded):
@@ -755,11 +755,66 @@ class Time(AbstractLeaf):
         except ValueError as e:
             raise TypeError('Failed to parse time') from e
 
+class Timedelta(AbstractLeaf):
+    """
+    leaf datatype class for time_delta
+
+    https://github.com/FreeRADIUS/freeradius-server/blob/10a2d7d172af0e3c275311b6fa7826789cc3a32b/src/lib/util/time.h#L80
+    """
+    def __init__(self, *args, **kwargs):
+        self.precision = kwargs.get('precision')
+        self.subtype = kwargs.get('subtype')
+
+        super().__init__('time_delta')
+
+    def encode(self, attribute: 'Attribute', decoded: any) -> bytes:
+        if not isinstance(decoded, timedelta):
+            raise TypeError('Can not encode non datetime object as time')
+
+        # time_deltas are stored as an int, so encoding as such depending on
+        # the subtype
+        match self.subtype:
+            case 'uint16':
+                return struct.pack('!H', decoded)
+            case 'int16':
+                return struct.pack('!h', decoded)
+            case 'uint32':
+                return struct.pack('!I', decoded)
+            case 'int32':
+                return struct.pack('!i', decoded)
+            case 'uint64':
+                return struct.pack('!Q', decoded)
+            # default case is signed int64
+            case 'int64' | _:
+                return struct.pack('!q', decoded)
+
+    def decode(self, raw: bytes, *args, **kwargs) -> any:
+        match self.subtype:
+            case 'uint16':
+                return struct.unpack('!H', raw)
+            case 'int16':
+                return struct.unpack('!h', raw)
+            case 'uint32':
+                return struct.unpack('!I', raw)
+            case 'int32':
+                return struct.unpack('!i', raw)
+            case 'uint64':
+                return struct.unpack('!Q', raw)
+            # default case is signed int64
+            case 'int64' | _:
+                return struct.unpack('!q', raw)
+
+    def print(self, attribute: 'Attribute', decoded: any) -> str:
+        pass
+
+    def parse(self, dictionary: 'Dictionary', string: str) -> any:
+        pass
+
 class Uint8(AbstractLeaf):
     """
     leaf datatype class for uint8
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('uint8')
 
     def encode(self, attribute, decoded):
@@ -795,7 +850,7 @@ class Uint16(AbstractLeaf):
     leaf datatype class for uint16
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('uint16')
 
     def encode(self, attribute, decoded):
@@ -831,7 +886,7 @@ class Uint32(AbstractLeaf):
     leaf datatype class for uint32
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('uint32')
 
     def encode(self, attribute, decoded):
@@ -867,7 +922,7 @@ class Uint64(AbstractLeaf):
     leaf datatype class for uint64
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('uint64')
 
     def encode(self, attribute, decoded):

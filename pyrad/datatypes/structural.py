@@ -21,7 +21,7 @@ class Evs(AbstractStructural):
     """
     structural datatype class for EVS
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('evs')
 
     def encode(self, attribute: 'Attribute', decoded: any) -> bytes:
@@ -49,7 +49,7 @@ class Extended(AbstractStructural):
     """
     structural datatype class for Extended
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('extended')
 
     def encode(self, attribute: 'Attribute', decoded: any) -> bytes:
@@ -72,7 +72,7 @@ class LongExtended(AbstractStructural):
     """
     structural datatype class for Long-Extended
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('long-extended')
 
     def encode(self, attribute: 'Attribute', decoded: any) -> bytes:
@@ -131,7 +131,7 @@ class Tlv(AbstractStructural):
     """
     structural datatype class for TLV
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('tlv')
 
     def encode(self, attribute, decoded):
@@ -185,7 +185,7 @@ class Vsa(AbstractStructural):
     """
     structural datatype class for VSA
     """
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('vsa')
 
         #  used for get_value()
