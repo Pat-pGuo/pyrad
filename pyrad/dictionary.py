@@ -421,6 +421,8 @@ class Dictionary(object):
 
             if (not has_tag) and encrypt == 0:
                 vendor = tokens[4]
+                # hack for removing the inline vendor as a passed in arg
+                args.remove(vendor)
                 inline_vendor = True
                 if not self.vendors.HasForward(vendor):
                     if vendor == "concat":
