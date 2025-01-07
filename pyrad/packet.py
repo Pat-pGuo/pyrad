@@ -666,6 +666,36 @@ class Packet(OrderedDict):
             sub_attributes.setdefault(atype, []).append(data[loc+2:loc+length])
             loc += length
 
+    def DecodeAttributes(self, packet):
+        """
+        takes in a group of attributes in hex and returns the python
+        representation
+        :param packet:
+        :return:
+        """
+
+        vps = []
+
+        cursor = 0
+        # iterates over all in vps in packet
+        while cursor < len(packet):
+            # gets the type and length headers in attribute
+            (atype, length) = struct.unpack('!BB', packet[cursor:cursor+2])
+
+            # retrieves the attribute object from dictionary
+            attribute = self.dict[atype]
+            # get the raw value to be decoded
+            # we move cursor up 2 and decrement length by 2 to account for
+            # removing the headers when getting the raw value
+            raw, offset = attribute.get_value(packet, cursor + 2, length - 2)
+
+            # add decoded vp to the list
+            vps.append({attribute.name: attribute.decode(raw)})
+            # also add by 2 to account for headers
+            cursor += offset + 2
+
+        return vps
+
     def DecodePacket(self, packet):
         """Initialize the object from raw packet data.  Decode a packet as
         received from the network and decode it.

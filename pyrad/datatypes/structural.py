@@ -167,7 +167,9 @@ class Tlv(AbstractStructural):
             sub_value, sub_offset = attribute[sub_type].get_value(
                 packet, cursor + 2, sub_len - 2
             )
-            tlvs.setdefault(sub_type, []).append(sub_value)
+
+            # use sub-attribute's name, not ID, as the key
+            tlvs.setdefault(attribute.attrindex.GetBackward(sub_type), []).append(sub_value)
 
             # move cursor forward by additional two to account for headers
             cursor += sub_offset + 2
@@ -211,17 +213,19 @@ class Vsa(AbstractStructural):
             return {packet[offset:offset + length]: {}}, length
 
         vendor = struct.unpack('!L', packet[offset:offset + 4])[0]
+        vendor_name = attribute.attrindex.GetBackward(vendor)
 
         # move cursor past vendor, start at first TLV
         cursor = offset + 4
         while cursor < offset + length:
             (sub_type, sub_length) = struct.unpack('!BB', packet[cursor:cursor + 2])
+            sub_type_name = attribute[vendor].attrindex.GetBackward(sub_type)
 
-            tlvs[sub_type], sub_offset = attribute[vendor][
+            tlvs[sub_type_name], sub_offset = attribute[vendor][
                 sub_type].get_value(packet, cursor + 2, sub_length - 2)
             cursor += sub_offset + 2
 
-        return {vendor: tlvs}, length
+        return {vendor_name: tlvs}, length
 
     def print(self, attribute, decoded):
         sub_attr_strings = [attribute[sub_attr].print(value)

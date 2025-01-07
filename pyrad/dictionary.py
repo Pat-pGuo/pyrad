@@ -201,11 +201,19 @@ class Attribute(object):
                 raise ValueError('Structural datatype holding string!')
             return self.type.decode(raw)
 
-        #  Recursively calls sub attribute's .decode() until a leaf attribute
-        #  is reached
-        for sub_attr, value in raw.items():
-            raw[sub_attr] = self.children[sub_attr].decode(value)
-        return raw
+        # For dealing with TLVs, which are a list of bytes
+        elif isinstance(raw, list):
+            return [self.type.decode(_raw) for _raw in raw]
+
+        else:
+            #  Recursively calls sub attribute's .decode() until a leaf
+            #  attribute is reached
+            for sub_attr, value in raw.items():
+                # if the vendor id was passed in, convert to the vendor name (str)
+                # first
+                child_key = sub_attr if isinstance(sub_attr, str) else self.attrindex.GetBackward(sub_attr)
+                raw[sub_attr] = self.children[child_key].decode(value)
+            return raw
 
     def get_value(self, packet: bytes, offset: int, length):
         """
@@ -304,6 +312,12 @@ class Vendor:
 
         self.attributes = {}
         self.attrindex = bidict.BiDict()
+
+    def decode(self, raw: dict):
+        for sub_attr, value in raw.items():
+            child_key = sub_attr if isinstance(sub_attr, str) else self.attrindex.GetBackward(sub_attr)
+            raw[sub_attr] = self[child_key].decode(value)
+        return raw
 
     def __getitem__(self, key: str|int) -> Attribute:
         # if using attribute number, first convert to attribute name
