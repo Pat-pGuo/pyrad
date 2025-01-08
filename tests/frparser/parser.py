@@ -4,7 +4,8 @@ import enum
 class TestTypes(enum.Enum):
     encode: 1
     decode: 2
-    match: 3
+    match_bytes: 3
+    match_vps: 4
 
 class V4TestCaseParser:
     def __init__(self, dictionary):
@@ -61,7 +62,7 @@ class V4TestCaseParser:
         try:
             # we first try to treat it as a hexstring
             # skip over the "match " prefix in the buffer string
-            return TestTypes.match, bytes.fromhex(buffer[6:])
+            return TestTypes.match_bytes, bytes.fromhex(buffer[6:])
         except ValueError:
             # if above fails, then we treat it as a value pair
-            return TestTypes.match, self.__get_vps(buffer[6:])
+            return TestTypes.match_vps, self.__get_vps(buffer[6:])

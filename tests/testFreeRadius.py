@@ -31,8 +31,15 @@ class TestFreeRadius(unittest.TestCase):
                                     self.previous.append(attribute.type.encode(value))
                             case TestTypes.decode:
                                 self.previous = self.packet.DecodeAttributes(value)
-                            case TestTypes.match:
-                                self.assertEqual(self.previous, value)
+                            case TestTypes.match_bytes:
+                                self.assertEqual(self.previous,
+                                                 self.packet.DecodeAttributes(value))
+                            case TestTypes.match_vps:
+                                vps = []
+                                for value in values:
+                                    attribute = self.dictionary[list(value.keys())[0]]
+                                    vps.append(attribute.type.encode(value))
+                                self.assertEqual(self.previous, vps)
                             case _:
                                 #  raises exception if unknown test types is
                                 #  passed in
